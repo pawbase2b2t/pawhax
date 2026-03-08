@@ -74,7 +74,7 @@ public class PawChat extends Module {
         if (msg == null || msg.isEmpty()) return;
 
         // ignore commands
-        if (msg.startsWith("/") || msg.startsWith(".") || msg.startsWith("#") || msg.startsWith("!") || msg.startsWith("*")) return;
+        if (msg.startsWith("/") || msg.startsWith(";") || msg.startsWith(".") || msg.startsWith("#") || msg.startsWith("!") || msg.startsWith("*")) return;
 
         String newMsg = msg;
 
