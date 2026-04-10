@@ -1,13 +1,7 @@
 package com.pawhax;
 
 import com.mojang.logging.LogUtils;
-import com.pawhax.modules.PawtoAnvilRename;
-import com.pawhax.modules.PawtoDyeShulkers;
-import com.pawhax.modules.PawtoLogoutWhisper;
-import com.pawhax.modules.AutoPawjob;
-import com.pawhax.modules.PawChat;
-import com.pawhax.modules.PearlGUI;
-import com.pawhax.modules.Pitch40AutoRocket;
+import com.pawhax.modules.*;
 import meteordevelopment.meteorclient.addons.GithubRepo;
 import meteordevelopment.meteorclient.addons.MeteorAddon;
 import meteordevelopment.meteorclient.systems.hud.HudGroup;
@@ -22,7 +16,7 @@ public class PawHax extends MeteorAddon {
 
     @Override
     public void onInitialize() {
-        LOG.info("Initializing pawhax");
+        LOG.info("loading pawhax....");
 
         // Modules
         //Modules.get().add(new ModuleExample());
@@ -33,6 +27,11 @@ public class PawHax extends MeteorAddon {
         Modules.get().add(new PawtoAnvilRename());
         Modules.get().add(new PawtoDyeShulkers());
         Modules.get().add(new PawtoLogoutWhisper());
+        Modules.get().add(new AntiAntiSpam());
+        Modules.get().add(new AntiAntiAFK());
+
+        LOG.info("imported larp modules........");
+        LOG.info("rat successfully installed! :3");
 
         // Commands
         //Commands.add(new CommandExample());

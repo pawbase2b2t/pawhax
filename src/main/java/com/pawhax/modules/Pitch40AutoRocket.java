@@ -25,7 +25,7 @@ public class Pitch40AutoRocket extends Module {
     );
 
     public Pitch40AutoRocket() {
-        super(PawHax.CATEGORY, "pitch40-auto-rocket", "Automatically use a rocket when you start falling during a pitch40 climb.");
+        super(PawHax.CATEGORY, "pitch40-auto-rocket", "automatically use a rocket when you start falling during a pitch40 climb.");
     }
 
     private final Module elytraFly = Modules.get().get(ElytraFly.class);

@@ -65,7 +65,7 @@ public class PawChat extends Module {
     private static final java.util.Random RANDOM = new java.util.Random();
 
     public PawChat() {
-        super(PawHax.CATEGORY, "paw-chat", "For flexing on chuds");
+        super(PawHax.CATEGORY, "paw-chat", "for flexing on chuds");
     }
 
     @EventHandler

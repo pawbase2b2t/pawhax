@@ -86,7 +86,7 @@ public class PawtoLogoutWhisper extends Module {
     private String pendingDisconnectMessage = null;
 
     public PawtoLogoutWhisper() {
-        super(PawHax.CATEGORY, "PawtoLogoutWhisper", "Disconnects you when a whitelisted player whispers a trigger word.");
+        super(PawHax.CATEGORY, "PawtoLogoutWhisper", "auto logs you on msg");
     }
 
     @Override

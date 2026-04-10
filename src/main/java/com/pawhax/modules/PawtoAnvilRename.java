@@ -171,7 +171,7 @@ public class PawtoAnvilRename extends Module {
     private static final TextColor LIGHT_GRAY = TextColor.fromRgb(0xAAAAAA);
 
     public PawtoAnvilRename() {
-        super(PawHax.CATEGORY, "PawtoAnvilRename", "Automatically renames items in an anvil.");
+        super(PawHax.CATEGORY, "PawtoAnvilRename", "renames stuffs in anvils");
     }
 
     // Adds a dropdown to the module's settings screen for quickly selecting a recent name

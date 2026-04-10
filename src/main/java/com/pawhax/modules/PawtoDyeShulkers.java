@@ -25,7 +25,7 @@ import net.minecraft.client.gui.screen.ingame.CraftingScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 
 public class PawtoDyeShulkers extends Module {
-    public PawtoDyeShulkers() { super(PawHax.CATEGORY, "PawtoDyeShulkers", "Automatically dye shulker boxes in crafting grids."); }
+    public PawtoDyeShulkers() { super(PawHax.CATEGORY, "PawtoDyeShulkers", "dyes shulks 4 u"); }
 
     public enum OperatingMode { Table, Inventory, Both }
 
