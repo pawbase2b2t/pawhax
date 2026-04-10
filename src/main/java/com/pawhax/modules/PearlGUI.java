@@ -14,21 +14,21 @@ public class PearlGUI extends Module {
 
     private final Setting<List<String>> labels = sgGeneral.add(new StringListSetting.Builder()
         .name("labels")
-        .description("List of labels/usernames.")
+        .description("List of labels/bot names")
         .defaultValue(List.of())
         .build()
     );
 
     private final Setting<List<String>> commands = sgGeneral.add(new StringListSetting.Builder()
         .name("commands")
-        .description("List of command prefixes (must match labels by index).")
+        .description("")
         .defaultValue(List.of())
         .build()
     );
 
     private final Setting<Integer> antispamBytesMessage = sgGeneral.add(new IntSetting.Builder()
         .name("anti-spam-bytes-message")
-        .description("Number of bytes to add to the antispam for a message.")
+        .description("")
         .defaultValue(8)
         .min(1)
         .sliderMax(16)
@@ -37,7 +37,7 @@ public class PearlGUI extends Module {
 
     private final Setting<Integer> antispamBytesChat = sgGeneral.add(new IntSetting.Builder()
         .name("anti-spam-bytes-chat")
-        .description("Number of bytes to add to the antispam for a public chat.")
+        .description("")
         .defaultValue(4)
         .min(1)
         .sliderMax(16)
@@ -45,7 +45,7 @@ public class PearlGUI extends Module {
     );
 
     public PearlGUI() {
-        super(PawHax.CATEGORY, "pearl-gui", "Pearl GUI module.");
+        super(PawHax.CATEGORY, "pearl-gui", "epic selection pizza pie cake wheel :3");
     }
 
     @Override

@@ -5,7 +5,7 @@
   "name": "pawhax",
   "description": "furry addon.",
   "authors": [
-    "Olstar123",
+    "olstar",
     "wrenne",
     "em0rave",
     "CrisisSheep"
@@ -21,7 +21,7 @@
     ]
   },
   "custom": {
-    "meteor-client:color": "225,25,25",
+    "meteor-client:color": "252,3,227",
     "modmenu": {
       "parent": {
         "id": "meteor-client"
