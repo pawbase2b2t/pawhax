@@ -34,7 +34,7 @@ public class PawChat extends Module {
     public final Setting<String> suffixText = sgGeneral.add(new StringSetting.Builder()
         .name("suffix-text")
         .description("Characters to put after the end of your message.")
-        .defaultValue("| pawhax")
+        .defaultValue("| pawhax v1.1")
         .build()
     );
 
@@ -49,7 +49,7 @@ public class PawChat extends Module {
     public final Setting<String> antispamFormat = sgGeneral.add(new StringSetting.Builder()
         .name("anti-spam-format")
         .description("Format of the antispam string. Use '%' to delegate where the antispam should be placed.")
-        .defaultValue("<<pawhax%>>")
+        .defaultValue("[%]")
         .build()
     );
 
