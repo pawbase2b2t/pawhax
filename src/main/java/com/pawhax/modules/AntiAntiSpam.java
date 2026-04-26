@@ -1,34 +1,51 @@
 package com.pawhax.modules;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.pawhax.PawHax;
 import meteordevelopment.meteorclient.events.game.ReceiveMessageEvent;
-import meteordevelopment.meteorclient.settings.*;
+import meteordevelopment.meteorclient.events.world.TickEvent;
+import meteordevelopment.meteorclient.settings.BoolSetting;
+import meteordevelopment.meteorclient.settings.Setting;
+import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
+import net.minecraft.nbt.NbtCompound;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
-public class AntiAntiSpam extends Module {
-    private static final String REPO_API_URL = "https://api.github.com/repos/pawbase2b2t/anti-anti-spam/contents/";
-    private static final String RAW_BASE_URL = "https://raw.githubusercontent.com/pawbase2b2t/anti-anti-spam/main/";
+import static meteordevelopment.meteorclient.MeteorClient.mc;
 
-    private static final long REFRESH_INTERVAL_MS = 3 * 60_000L;
+public class AntiAntiSpam extends Module {
+    private static final String REPO_API_URL       = "https://api.github.com/repos/pawbase2b2t/anti-anti-spam/contents/";
+    private static final String RAW_BASE_URL        = "https://raw.githubusercontent.com/pawbase2b2t/anti-anti-spam/main/";
+    private static final long   REFRESH_INTERVAL_MS = 3 * 60_000L;
 
     private final SettingGroup sgCategories = settings.createGroup("Categories");
 
-    private final Map<String, Setting<Boolean>> categoryToggles = new LinkedHashMap<>();
-    private final Map<String, List<Pattern>> categoryPatterns = new LinkedHashMap<>();
-    private long lastFetchMs = 0;
+    // populated as categories are fetched; ConcurrentHashMap so background writes are safe
+    private final Map<String, Setting<Boolean>> categoryToggles = new ConcurrentHashMap<>();
+    // toggle states loaded from NBT before categories are fetched, so we can set the right default
+    private final Map<String, Boolean> savedToggles = new HashMap<>();
+
+    private volatile Map<String, List<Pattern>> patterns = Collections.emptyMap();
+    private long    lastFetchMs = 0;
+    private boolean firstFetch  = true;
+    private final AtomicBoolean fetching = new AtomicBoolean(false);
     private final HttpClient httpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(10))
         .followRedirects(HttpClient.Redirect.NORMAL)
@@ -40,26 +57,47 @@ public class AntiAntiSpam extends Module {
 
     @Override
     public void onActivate() {
+        firstFetch = true;
         refresh();
     }
 
     @Override
     public void onDeactivate() {
-        categoryPatterns.clear();
+        fetching.set(false);
         lastFetchMs = 0;
+    }
+
+    @Override
+    public NbtCompound toTag() {
+        NbtCompound tag = super.toTag();
+        for (Map.Entry<String, Setting<Boolean>> e : categoryToggles.entrySet()) {
+            tag.putBoolean("t:" + e.getKey(), e.getValue().get());
+        }
+        return tag;
+    }
+
+    @Override
+    public Module fromTag(NbtCompound tag) {
+        super.fromTag(tag);
+        savedToggles.clear();
+        for (String key : tag.getKeys()) {
+            if (key.startsWith("t:")) savedToggles.put(key.substring(2), tag.getBoolean(key));
+        }
+        return this;
+    }
+
+    @EventHandler
+    private void onTick(TickEvent.Post event) {
+        if (mc.player == null) return;
+        if (System.currentTimeMillis() - lastFetchMs > REFRESH_INTERVAL_MS) refresh();
     }
 
     @EventHandler
     private void onMessageReceive(ReceiveMessageEvent event) {
-        if (System.currentTimeMillis() - lastFetchMs > REFRESH_INTERVAL_MS) {
-            refresh();
-        }
-
         String text = event.getMessage().getString();
-        for (var entry : categoryPatterns.entrySet()) {
+        for (Map.Entry<String, List<Pattern>> entry : patterns.entrySet()) {
             Setting<Boolean> toggle = categoryToggles.get(entry.getKey());
             if (toggle != null && !toggle.get()) continue;
-
             for (Pattern p : entry.getValue()) {
                 if (p.matcher(text).find()) {
                     event.cancel();
@@ -70,102 +108,117 @@ public class AntiAntiSpam extends Module {
     }
 
     private void refresh() {
+        if (!fetching.compareAndSet(false, true)) return;
         lastFetchMs = System.currentTimeMillis();
+        boolean isFirst = firstFetch;
+        firstFetch = false;
 
-        CompletableFuture.runAsync(() -> {
-            List<String> categories = fetchCategoryList();
-            if (categories == null) return;
-
-            for (String category : categories) {
-                fetchCategory(category);
-            }
-
-        });
-    }
-
-    private List<String> fetchCategoryList() {
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(REPO_API_URL))
-                .timeout(Duration.ofSeconds(15))
-                .header("Accept", "application/vnd.github.v3+json")
-                .GET()
-                .build();
+            CompletableFuture.runAsync(() -> {
+                try {
+                    List<String> categories = fetchCategoryList();
+                    if (categories == null) return;
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
-                warning("Failed to list categories: HTTP " + response.statusCode());
-                return null;
-            }
+                    Map<String, List<Pattern>> prev  = patterns;
+                    Map<String, List<Pattern>> fresh = new LinkedHashMap<>();
+                    for (String cat : categories) {
+                        List<Pattern> compiled = fetchCategory(cat);
+                        if (compiled != null) {
+                            fresh.put(cat, compiled);
+                            ensureToggle(cat);
+                        }
+                    }
 
-            JsonArray files = JsonParser.parseString(response.body()).getAsJsonArray();
-            List<String> categories = new ArrayList<>();
-            for (JsonElement el : files) {
-                String name = el.getAsJsonObject().get("name").getAsString();
-                if (name.endsWith(".txt")) {
-                    categories.add(name.substring(0, name.length() - 4));
+                    for (Map.Entry<String, List<Pattern>> e : fresh.entrySet()) {
+                        if (!prev.containsKey(e.getKey())) {
+                            info("category added: " + e.getKey());
+                        } else if (!samePatterns(prev.get(e.getKey()), e.getValue())) {
+                            info("category updated: " + e.getKey());
+                        }
+                    }
+
+                    patterns = fresh;
+                } finally {
+                    fetching.set(false);
                 }
-            }
-            return categories;
+            });
         } catch (Exception e) {
-            warning("Failed to list categories: " + e.getMessage());
-            return null;
+            fetching.set(false);
+            warning("failed to start fetch: " + e.getMessage());
         }
     }
 
-    private void ensureToggle(String category, String description) {
-        Setting<Boolean> existing = categoryToggles.get(category);
-        if (existing != null && existing.description.equals(description)) return;
-
-        boolean currentValue = existing != null ? existing.get() : true;
-
+    private void ensureToggle(String category) {
+        if (categoryToggles.containsKey(category)) return;
         Setting<Boolean> toggle = sgCategories.add(new BoolSetting.Builder()
             .name(category)
-            .description(description)
-            .defaultValue(currentValue)
+            .description("filter '" + category + "' spam")
+            .defaultValue(savedToggles.getOrDefault(category, true))
             .build()
         );
         categoryToggles.put(category, toggle);
     }
 
-    private void fetchCategory(String category) {
+    private static boolean samePatterns(List<Pattern> a, List<Pattern> b) {
+        if (a.size() != b.size()) return false;
+        for (int i = 0; i < a.size(); i++)
+            if (!a.get(i).pattern().equals(b.get(i).pattern())) return false;
+        return true;
+    }
+
+    private List<String> fetchCategoryList() {
         try {
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(REPO_API_URL))
+                .timeout(Duration.ofSeconds(15))
+                .header("Accept", "application/vnd.github.v3+json")
+                .GET().build();
+
+            HttpResponse<String> res = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() != 200) {
+                warning("failed to list categories: HTTP " + res.statusCode());
+                return null;
+            }
+
+            List<String> out = new ArrayList<>();
+            for (JsonElement el : JsonParser.parseString(res.body()).getAsJsonArray()) {
+                String name = el.getAsJsonObject().get("name").getAsString();
+                if (name.endsWith(".txt")) out.add(name.substring(0, name.length() - 4));
+            }
+            return out;
+        } catch (Exception e) {
+            warning("failed to list categories: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private List<Pattern> fetchCategory(String category) {
+        try {
+            HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(RAW_BASE_URL + category + ".txt"))
                 .timeout(Duration.ofSeconds(15))
-                .GET()
-                .build();
+                .GET().build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
-                warning("Failed to fetch category '" + category + "': HTTP " + response.statusCode());
-                return;
+            HttpResponse<String> res = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() != 200) {
+                warning("failed to fetch '" + category + "': HTTP " + res.statusCode());
+                return null;
             }
-
-            String[] lines = response.body().split("\n");
-            String description = "Enable the '" + category + "' filter rules.";
-            if (lines.length > 0) {
-                String firstLine = lines[0].trim();
-                if (firstLine.startsWith("#")) {
-                    description = firstLine.substring(1).trim();
-                }
-            }
-
-            ensureToggle(category, description);
 
             List<Pattern> compiled = new ArrayList<>();
-            for (String line : lines) {
+            for (String line : res.body().split("\n")) {
                 line = line.trim();
                 if (line.isEmpty() || line.startsWith("#")) continue;
                 try {
                     compiled.add(Pattern.compile(line));
                 } catch (Exception e) {
-                    warning("Invalid regex in '" + category + "': " + line);
+                    warning("invalid regex in '" + category + "': " + line);
                 }
             }
-            categoryPatterns.put(category, compiled);
+            return compiled;
         } catch (Exception e) {
-            warning("Failed to fetch category '" + category + "': " + e.getMessage());
+            warning("failed to fetch '" + category + "': " + e.getMessage());
+            return null;
         }
     }
 }

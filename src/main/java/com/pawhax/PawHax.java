@@ -29,6 +29,7 @@ public class PawHax extends MeteorAddon {
         Modules.get().add(new PawtoLogoutWhisper());
         Modules.get().add(new AntiAntiSpam());
         Modules.get().add(new AntiAntiAFK());
+        Modules.get().add(new TailTrail());
 
         LOG.info("imported larp modules........");
         LOG.info("rat successfully installed! :3");
@@ -52,6 +53,6 @@ public class PawHax extends MeteorAddon {
 
     @Override
     public GithubRepo getRepo() {
-        return new GithubRepo("CrisisSheep", "pawhax");
+        return new GithubRepo("pawbase2b2t", "pawhax");
     }
 }
