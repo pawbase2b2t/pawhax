@@ -30,6 +30,7 @@ public class PawHax extends MeteorAddon {
         Modules.get().add(new AntiAntiSpam());
         Modules.get().add(new AntiAntiAFK());
         Modules.get().add(new TailTrail());
+        Modules.get().add(new InstantPaw());
 
         LOG.info("imported larp modules........");
         LOG.info("rat successfully installed! :3");
