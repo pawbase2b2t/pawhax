@@ -17,8 +17,11 @@ public abstract class DiagBounceKeyBindingMixin {
 
     @Inject(at = @At("RETURN"), method = "isPressed", cancellable = true)
     public void isPressed(CallbackInfoReturnable<Boolean> cir) {
-        // Lazy init to avoid crash before Meteor is fully loaded
-        if (diagBounce == null) diagBounce = Modules.get().get(DiagBounce.class);
+        if (diagBounce == null) {
+            Modules modules = Modules.get();
+            if (modules == null) return;
+            diagBounce = modules.get(DiagBounce.class);
+        }
         if (diagBounce != null && diagBounce.isFlyEnabled()
                 && ((KeyBinding)(Object)this).getId().equals("key.forward")) {
             cir.setReturnValue(true);
