@@ -61,7 +61,9 @@ public class BannerWebhook extends Module {
     @Override
     public void onDeactivate() {}
 
-    public void clearSession() {}
+    public void clearSession() {
+        scanTimer = 0;
+    }
 
     @EventHandler
     private void onTick(TickEvent.Post event) {
