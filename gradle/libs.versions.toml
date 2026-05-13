@@ -1,5 +1,5 @@
 [versions]
-mod-version = "1.1-rc4-1.21.4"
+mod-version = "1.1-1.21.4"
 
 # Fabric (https://fabricmc.net/develop)
 minecraft = "1.21.4"
@@ -12,6 +12,9 @@ loom = "1.14-SNAPSHOT"
 # Meteor (https://github.com/MeteorDevelopment/meteor-client/)
 meteor = "1.21.4-SNAPSHOT"
 
+# Baritone (https://maven.meteordev.org)
+baritone = "1.21.4-SNAPSHOT"
+
 # Mods
 
 [libraries]
@@ -22,6 +25,9 @@ fabric-loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric-l
 
 # Meteor client
 meteor-client = { module = "meteordevelopment:meteor-client", version.ref = "meteor" }
+
+# Baritone
+baritone = { module = "meteordevelopment:baritone", version.ref = "baritone" }
 
 # Mods
 

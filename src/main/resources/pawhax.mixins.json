@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "com.pawhax.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "DiagBounceEntityMixin",
+    "DiagBounceLivingEntityMixin",
+    "DiagBounceKeyBindingMixin",
+    "BannerWebhookMixin",
+    "BannerWebhookJoinMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

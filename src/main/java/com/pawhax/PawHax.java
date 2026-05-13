@@ -1,9 +1,11 @@
 package com.pawhax;
 
 import com.mojang.logging.LogUtils;
+import com.pawhax.hud.NowPlayingHud;
 import com.pawhax.modules.*;
 import meteordevelopment.meteorclient.addons.GithubRepo;
 import meteordevelopment.meteorclient.addons.MeteorAddon;
+import meteordevelopment.meteorclient.systems.hud.Hud;
 import meteordevelopment.meteorclient.systems.hud.HudGroup;
 import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.systems.modules.Modules;
@@ -31,6 +33,10 @@ public class PawHax extends MeteorAddon {
         Modules.get().add(new AntiAntiAFK());
         Modules.get().add(new TailTrail());
         Modules.get().add(new InstantPaw());
+        Modules.get().add(new InvResync());
+        Modules.get().add(new DiagBounce());
+        Modules.get().add(new BannerWebhook());
+        Modules.get().add(new NowPlayingModule());
 
         LOG.info("imported larp modules........");
         LOG.info("rat successfully installed! :3");
@@ -39,7 +45,7 @@ public class PawHax extends MeteorAddon {
         //Commands.add(new CommandExample());
 
         // HUD
-        //Hud.get().register(HudExample.INFO);
+        Hud.get().register(NowPlayingHud.INFO);
     }
 
     @Override
