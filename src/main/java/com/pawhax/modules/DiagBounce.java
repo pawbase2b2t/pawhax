@@ -611,8 +611,10 @@ public class DiagBounce extends Module {
         point = point.multiply(1, 0, 1);
         start = start.multiply(1, 0, 1);
         direction = direction.multiply(1, 0, 1);
+        double lenSq = direction.lengthSquared();
+        if (lenSq == 0) return 0;
         Vec3d diff = point.subtract(start);
-        double proj = diff.dotProduct(direction) / direction.lengthSquared();
+        double proj = diff.dotProduct(direction) / lenSq;
         Vec3d perp = diff.subtract(direction.multiply(proj));
         return perp.length();
     }

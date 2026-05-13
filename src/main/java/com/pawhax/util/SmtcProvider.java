@@ -88,7 +88,8 @@ public class SmtcProvider {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     break;
-                } catch (Exception ignored) {
+                } catch (Exception e) {
+                    PawHax.LOG.warn("[NowPlaying] poll error: {}", e.getMessage());
                     try { Thread.sleep(2000); } catch (InterruptedException ie) { break; }
                 }
             }
