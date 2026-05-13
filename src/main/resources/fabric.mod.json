@@ -20,6 +20,9 @@
       "com.pawhax.PawHax"
     ]
   },
+  "mixins": [
+    "pawhax.mixins.json"
+  ],
   "custom": {
     "meteor-client:color": "252,3,227",
     "modmenu": {

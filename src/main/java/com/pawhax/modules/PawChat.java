@@ -92,21 +92,19 @@ public class PawChat extends Module {
 
         // add antispam if enabled
         if (this.antispam.get()) {
-            // create random bytes
             byte[] bytes = new byte[this.antispamBytes.get()];
             RANDOM.nextBytes(bytes);
-
-            // add them to a string
             StringBuilder sb = new StringBuilder();
-            for (byte b : bytes) {
-                sb.append(String.format("%02x", b));
+            for (byte b : bytes) sb.append(String.format("%02x", b));
+            String antispamSuffix = " " + antispamFormat.get().replace("%", sb.toString());
+            int maxBase = 256 - antispamSuffix.length();
+            if (maxBase > 0) {
+                if (newMsg.length() > maxBase) newMsg = newMsg.substring(0, maxBase);
+                newMsg = newMsg + antispamSuffix;
             }
-
-            // place into format
-            String antispamText = antispamFormat.get().replace("%", sb.toString());
-            newMsg = newMsg + " " + antispamText;
         }
 
+        if (!this.antispam.get() && newMsg.length() > 256) newMsg = newMsg.substring(0, 256);
         e.message = newMsg;
     }
 }
