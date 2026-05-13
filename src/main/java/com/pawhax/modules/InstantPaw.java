@@ -83,7 +83,7 @@ public class InstantPaw extends Module {
     }
 
     private boolean isTargetOnline() {
-        if (mc.player == null) return false;
+        if (mc.player == null || mc.player.networkHandler == null) return false;
         String target = targetPlayer.get().trim();
         if (target.isEmpty()) return false;
         return mc.player.networkHandler.getPlayerList().stream()
