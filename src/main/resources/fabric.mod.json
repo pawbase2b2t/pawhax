@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "pawhax",
+  "version": "${version}",
+  "name": "pawhax",
+  "description": "furry addon.",
+  "authors": [
+    "olstar",
+    "wrenne",
+    "em0rave",
+    "CrisisSheep"
+  ],
+  "contact": {
+    "sources": "https://github.com/pawbase2b2t/pawhax"
+  },
+  "icon": "assets/template/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "meteor": [
+      "com.pawhax.PawHax"
+    ]
+  },
+  "mixins": [
+    "pawhax.mixins.json"
+  ],
+  "custom": {
+    "meteor-client:color": "252,3,227",
+    "modmenu": {
+      "parent": {
+        "id": "meteor-client"
+      }
+    }
+  },
+  "depends": {
+    "java": ">=21",
+    "minecraft": ["${mc_version}"],
+    "meteor-client": "*"
+  }
+}
