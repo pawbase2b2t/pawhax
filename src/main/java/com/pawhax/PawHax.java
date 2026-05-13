@@ -42,6 +42,9 @@ public class PawHax extends MeteorAddon {
         LOG.info("imported larp modules........");
         LOG.info("rat successfully installed! :3");
 
+        LOG.info("imported larp modules........");
+        LOG.info("rat successfully installed! :3");
+
         // Commands
         //Commands.add(new CommandExample());
 
