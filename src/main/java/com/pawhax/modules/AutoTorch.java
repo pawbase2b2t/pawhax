@@ -60,11 +60,8 @@ public class AutoTorch extends Module {
         if (surfacePos == null) return;
         if (!mc.world.getBlockState(surfacePos.up()).isAir()) return;
 
-        var inv = mc.player.getInventory();
-        int savedSlot = inv.getSelectedSlot();
-        boolean switched = false;
-
         if (!mc.player.getMainHandStack().isOf(Items.TORCH)) {
+            var inv = mc.player.getInventory();
             int torchSlot = findTorchInHotbar();
             if (torchSlot == -1) {
                 int invScreenSlot = findTorchInInventory();
@@ -76,7 +73,6 @@ public class AutoTorch extends Module {
             }
             inv.setSelectedSlot(torchSlot);
             mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(torchSlot));
-            switched = true;
         }
 
         BlockHitResult hit = new BlockHitResult(
@@ -87,11 +83,6 @@ public class AutoTorch extends Module {
         );
         mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, hit);
         mc.player.swingHand(Hand.MAIN_HAND);
-
-        if (switched) {
-            inv.setSelectedSlot(savedSlot);
-            mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(savedSlot));
-        }
 
         placeCooldown = 10;
     }
