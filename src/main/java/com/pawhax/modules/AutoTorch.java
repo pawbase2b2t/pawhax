@@ -8,6 +8,7 @@ import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -59,20 +60,22 @@ public class AutoTorch extends Module {
         if (!mc.world.getBlockState(surfacePos).isSolidBlock(mc.world, surfacePos)) return;
         if (!mc.world.getBlockState(feetPos).isAir()) return;
 
-        int torchSlot = findTorchInHotbar();
-
-        if (torchSlot == -1) {
-            int invScreenSlot = findTorchInInventory();
-            if (invScreenSlot == -1) return;
-
-            torchSlot = findEmptyHotbarSlot();
-            if (torchSlot == -1) torchSlot = 8;
-
-            var handler = mc.player.playerScreenHandler;
-            mc.interactionManager.clickSlot(handler.syncId, invScreenSlot, torchSlot, SlotActionType.SWAP, mc.player);
+        if (!mc.player.getMainHandStack().isOf(Items.TORCH)) {
+            int torchSlot = findTorchInHotbar();
+            if (torchSlot == -1) {
+                int invScreenSlot = findTorchInInventory();
+                if (invScreenSlot == -1) return;
+                torchSlot = findEmptyHotbarSlot();
+                if (torchSlot == -1) torchSlot = 8;
+                var handler = mc.player.playerScreenHandler;
+                mc.interactionManager.clickSlot(handler.syncId, invScreenSlot, torchSlot, SlotActionType.SWAP, mc.player);
+            }
+            mc.player.getInventory().selectedSlot = torchSlot;
         }
 
-        mc.player.getInventory().selectedSlot = torchSlot;
+        float yaw = mc.player.getYaw();
+        float pitch = mc.player.getPitch();
+        mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(yaw, -90f, true, mc.player.horizontalCollision));
 
         BlockHitResult hit = new BlockHitResult(
             Vec3d.ofCenter(surfacePos).add(0, 0.5, 0),
@@ -82,6 +85,8 @@ public class AutoTorch extends Module {
         );
         mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, hit);
         mc.player.swingHand(Hand.MAIN_HAND);
+
+        mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(yaw, pitch, mc.player.isOnGround(), mc.player.horizontalCollision));
 
         placeCooldown = 10;
     }
