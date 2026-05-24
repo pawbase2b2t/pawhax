@@ -8,6 +8,7 @@ import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -55,9 +56,13 @@ public class AutoTorch extends Module {
         BlockPos feetPos = mc.player.getBlockPos();
         if (mc.world.getLightLevel(LightType.BLOCK, feetPos) > lightThreshold.get()) return;
 
-        BlockPos surfacePos = feetPos.down();
-        if (!mc.world.getBlockState(surfacePos).isSolidBlock(mc.world, surfacePos)) return;
-        if (!mc.world.getBlockState(feetPos).isAir()) return;
+        BlockPos surfacePos = findSurface();
+        if (surfacePos == null) return;
+        if (!mc.world.getBlockState(surfacePos.up()).isAir()) return;
+
+        var inv = mc.player.getInventory();
+        int savedSlot = inv.getSelectedSlot();
+        boolean switched = false;
 
         if (!mc.player.getMainHandStack().isOf(Items.TORCH)) {
             int torchSlot = findTorchInHotbar();
@@ -69,7 +74,9 @@ public class AutoTorch extends Module {
                 var handler = mc.player.playerScreenHandler;
                 mc.interactionManager.clickSlot(handler.syncId, invScreenSlot, torchSlot, SlotActionType.SWAP, mc.player);
             }
-            mc.player.getInventory().setSelectedSlot(torchSlot);
+            inv.setSelectedSlot(torchSlot);
+            mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(torchSlot));
+            switched = true;
         }
 
         BlockHitResult hit = new BlockHitResult(
@@ -81,7 +88,36 @@ public class AutoTorch extends Module {
         mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, hit);
         mc.player.swingHand(Hand.MAIN_HAND);
 
+        if (switched) {
+            inv.setSelectedSlot(savedSlot);
+            mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(savedSlot));
+        }
+
         placeCooldown = 10;
+    }
+
+    // Tries center first, then falls back to the four corners of the player's bounding box footprint.
+    private BlockPos findSurface() {
+        BlockPos center = mc.player.getBlockPos().down();
+        if (mc.world.getBlockState(center).isSolidBlock(mc.world, center)) return center;
+
+        double x = mc.player.getX();
+        double y = mc.player.getY();
+        double z = mc.player.getZ();
+        int surfaceY = (int) Math.floor(y) - 1;
+        double r = 0.3;
+
+        int[][] corners = {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}};
+        for (int[] c : corners) {
+            BlockPos candidate = new BlockPos(
+                (int) Math.floor(x + c[0] * r),
+                surfaceY,
+                (int) Math.floor(z + c[1] * r)
+            );
+            if (!candidate.equals(center) && mc.world.getBlockState(candidate).isSolidBlock(mc.world, candidate))
+                return candidate;
+        }
+        return null;
     }
 
     private int findTorchInHotbar() {
