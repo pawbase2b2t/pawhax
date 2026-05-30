@@ -105,6 +105,7 @@ public class DiagBounce extends Module {
     private BlockPos pendingPasserGoal;
     private boolean freeLookEnabledByUs;
     private boolean baritoneLoaded;
+    private boolean notchPosX, notchNegX, notchPosZ, notchNegZ;
 
     @Override
     public void onActivate() {
@@ -115,6 +116,11 @@ public class DiagBounce extends Module {
         lockedYaw = nearestDiagonal(mc.player.getYaw());
         activationPos = mc.player.getEntityPos();
         capturedTargetY = (int) Math.floor(mc.player.getY());
+        BlockPos ap = mc.player.getBlockPos();
+        notchPosX = mc.world.getBlockState(ap.add( 1, 0,  0)).isSolidBlock(mc.world, ap.add( 1, 0,  0));
+        notchNegX = mc.world.getBlockState(ap.add(-1, 0,  0)).isSolidBlock(mc.world, ap.add(-1, 0,  0));
+        notchPosZ = mc.world.getBlockState(ap.add( 0, 0,  1)).isSolidBlock(mc.world, ap.add( 0, 0,  1));
+        notchNegZ = mc.world.getBlockState(ap.add( 0, 0, -1)).isSolidBlock(mc.world, ap.add( 0, 0, -1));
         collisionTicks = 0;
         wasAlignedCollision = false;
         lastPos = mc.player.getEntityPos();
@@ -525,11 +531,6 @@ public class DiagBounce extends Module {
         double parallelDot = travelVec.dotProduct(unitYawVec);
         Vec3d projectedPos = new Vec3d(activationPos.x, 0, activationPos.z).add(unitYawVec.multiply(parallelDot));
 
-        // Cardinal direction offsets only — diagonal blocks (wallDx, wallDz together) cannot
-        // cause horizontalCollision during diagonal walking due to axis-separated collision.
-        int wallDx = (int) Math.round(unitYawVec.x);
-        int wallDz = (int) Math.round(unitYawVec.z);
-
         BlockPos fallbackGoal = null;
         double currDistance = OBSTACLE_DISTANCE;
 
@@ -544,26 +545,22 @@ public class DiagBounce extends Module {
             if (!mc.world.getBlockState(candidate).isAir()) continue;
             if (!mc.world.getBlockState(candidate.up()).isAir()) continue;
 
-            // Only check cardinal-direction walls — these are the only blocks the player
-            // will physically collide with during diagonal walking
-            BlockPos fwdX = candidate.add(wallDx, 0, 0);
-            BlockPos fwdZ = candidate.add(0, 0, wallDz);
-            boolean xSolid = mc.world.getBlockState(fwdX).isSolidBlock(mc.world, fwdX);
-            boolean zSolid = mc.world.getBlockState(fwdZ).isSolidBlock(mc.world, fwdZ);
-
-            if (xSolid || zSolid) {
-                dbg("passer: notch goal=" + candidate
-                    + (xSolid ? " wallX=" + mc.world.getBlockState(fwdX).getBlock() : "")
-                    + (zSolid ? " wallZ=" + mc.world.getBlockState(fwdZ).getBlock() : ""));
+            // All 4 cardinal neighbors must match the notch pattern captured at activation
+            BlockPos cPX = candidate.add( 1, 0,  0);
+            BlockPos cNX = candidate.add(-1, 0,  0);
+            BlockPos cPZ = candidate.add( 0, 0,  1);
+            BlockPos cNZ = candidate.add( 0, 0, -1);
+            if (mc.world.getBlockState(cPX).isSolidBlock(mc.world, cPX) == notchPosX
+                    && mc.world.getBlockState(cNX).isSolidBlock(mc.world, cNX) == notchNegX
+                    && mc.world.getBlockState(cPZ).isSolidBlock(mc.world, cPZ) == notchPosZ
+                    && mc.world.getBlockState(cNZ).isSolidBlock(mc.world, cNZ) == notchNegZ) {
+                dbg("passer: notch goal=" + candidate);
                 pendingPasserGoal = candidate;
                 state = State.OBSTACLE_PASSING;
                 return;
             }
 
             if (fallbackGoal == null) fallbackGoal = candidate;
-
-            // Stop notch search after 24 blocks past start distance
-            if (currDistance > OBSTACLE_DISTANCE + 24) break;
         }
 
         if (fallbackGoal == null) fallbackGoal = new BlockPos(mc.player.getBlockX(), capturedTargetY, mc.player.getBlockZ());
