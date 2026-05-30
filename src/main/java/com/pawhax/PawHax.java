@@ -9,6 +9,7 @@ import meteordevelopment.meteorclient.systems.hud.Hud;
 import meteordevelopment.meteorclient.systems.hud.HudGroup;
 import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.systems.modules.Modules;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import org.slf4j.Logger;
 
 public class PawHax extends MeteorAddon {
@@ -47,6 +48,11 @@ public class PawHax extends MeteorAddon {
 
         // Commands
         //Commands.add(new CommandExample());
+
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            DiagBounce db = Modules.get().get(DiagBounce.class);
+            if (db != null && db.isActive()) client.execute(db::toggle);
+        });
 
         // HUD
         Hud.get().register(NowPlayingHud.INFO);

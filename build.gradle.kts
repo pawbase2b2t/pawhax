@@ -30,6 +30,9 @@ dependencies {
 
     // Baritone (optional runtime dependency)
     modCompileOnly(libs.baritone)
+
+    // Fabric API (compile-only — provided at runtime by the game)
+    modCompileOnly("net.fabricmc.fabric-api:fabric-api:0.141.3+1.21.11")
 }
 
 tasks {
