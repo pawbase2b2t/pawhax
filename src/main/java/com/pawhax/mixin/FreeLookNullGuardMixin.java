@@ -13,7 +13,7 @@ import static meteordevelopment.meteorclient.MeteorClient.mc;
 public class FreeLookNullGuardMixin {
 
     @Inject(at = @At("HEAD"), method = "onTick", cancellable = true)
-    private void guardNullPlayer(TickEvent.Pre event, CallbackInfo ci) {
+    private void guardNullPlayer(TickEvent.Post event, CallbackInfo ci) {
         if (mc.player == null) ci.cancel();
     }
 }
