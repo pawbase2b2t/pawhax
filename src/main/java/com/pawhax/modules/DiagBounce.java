@@ -109,7 +109,14 @@ public class DiagBounce extends Module {
 
     @Override
     public void onActivate() {
-        if (mc.player == null) { toggle(); return; }
+        if (mc.player == null) {
+            if (autoFreeLook.get()) {
+                Module freeLook = Modules.get().get("free-look");
+                if (freeLook != null && freeLook.isActive()) freeLook.toggle();
+            }
+            toggle();
+            return;
+        }
         baritoneLoaded = FabricLoader.getInstance().isModLoaded("baritone")
             || FabricLoader.getInstance().isModLoaded("baritone-meteor");
         state = State.ALIGNING;
