@@ -37,7 +37,7 @@ public class DiagBounce extends Module {
         .name("speed")
         .description("Target speed in blocks per second.")
         .defaultValue(110.0)
-        .sliderRange(20.0, 200.0)
+        .sliderRange(50.0, 200.0)
         .build()
     );
 
@@ -46,6 +46,14 @@ public class DiagBounce extends Module {
         .description("Pitch to lock to while bouncing.")
         .defaultValue(85.0)
         .sliderRange(-90.0, 90.0)
+        .build()
+    );
+
+    public final Setting<Double> boostEngageSpeed = sgGeneral.add(new DoubleSetting.Builder()
+        .name("boost-engage-speed")
+        .description("Horizontal speed (bps) at which BOOSTING mode is engaged.")
+        .defaultValue(25.0)
+        .sliderRange(15.0, 40.0)
         .build()
     );
 
@@ -63,7 +71,6 @@ public class DiagBounce extends Module {
         .build()
     );
 
-    private static final double BOOST_ENGAGE_SPEED = 20.0;
     private static final double OBSTACLE_DISTANCE  = 6.0;
     private static final double MAX_OBSTACLE_RANGE = 16.0 * 5;
 
@@ -322,7 +329,7 @@ public class DiagBounce extends Module {
         double hspeed = horizontalSpeedBps();
         if (hspeed >= 40.0) wasCruising = true;
 
-        if (hspeed >= BOOST_ENGAGE_SPEED) {
+        if (hspeed >= boostEngageSpeed.get()) {
             zeroSpeedTicks = 0;
             lowBoostTicks = 0;
             bouncingTicks = 0;
@@ -374,8 +381,8 @@ public class DiagBounce extends Module {
         Vec3d vel = mc.player.getVelocity();
 
         // Clear rubber-band counter only when genuinely cruising at target speed.
-        // BOOST_ENGAGE_SPEED (20 bps) is too low — the rubber-band loop itself can
-        // reach ~30 bps momentarily, which would reset the counter before it fires.
+        // boost-engage-speed is too low a threshold — the rubber-band loop itself can
+        // temporarily exceed it, which would reset the counter before it fires.
         if (hspeed >= speed.get() * 0.75) rubberBandCount = 0;
 
         // Log every ground contact and departure to understand bounce mechanics
@@ -400,7 +407,7 @@ public class DiagBounce extends Module {
 
         if (hspeed >= 40.0) wasCruising = true;
 
-        if (hspeed < BOOST_ENGAGE_SPEED) {
+        if (hspeed < boostEngageSpeed.get()) {
             if (wasCruising) lowBoostTicks++;
         } else {
             lowBoostTicks = 0;
