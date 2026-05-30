@@ -16,7 +16,6 @@ import meteordevelopment.meteorclient.utils.misc.input.Input;
 import meteordevelopment.orbit.EventHandler;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Blocks;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.entity.MovementType;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
@@ -148,17 +147,12 @@ public class DiagBounce extends Module {
         pendingPasserGoal = null;
         wasCruising = false;
 
-        boolean prevOwned = freeLookEnabledByUs;
         freeLookEnabledByUs = false;
         if (autoFreeLook.get()) {
             Module freeLook = Modules.get().get("free-look");
-            if (freeLook != null) {
-                if (!freeLook.isActive()) {
-                    freeLook.toggle();
-                    freeLookEnabledByUs = true;
-                } else if (prevOwned) {
-                    freeLookEnabledByUs = true;
-                }
+            if (freeLook != null && !freeLook.isActive()) {
+                freeLook.toggle();
+                freeLookEnabledByUs = true;
             }
         }
     }
@@ -176,20 +170,6 @@ public class DiagBounce extends Module {
             if (freeLook != null && freeLook.isActive()) freeLook.toggle();
             freeLookEnabledByUs = false;
         }
-    }
-
-    @Override
-    public NbtCompound toTag() {
-        NbtCompound tag = super.toTag();
-        if (tag != null) tag.putBoolean("freeLookOwned", freeLookEnabledByUs);
-        return tag;
-    }
-
-    @Override
-    public Module fromTag(NbtCompound tag) {
-        super.fromTag(tag);
-        freeLookEnabledByUs = tag.getBoolean("freeLookOwned");
-        return this;
     }
 
     /** True when the elytra-fly mixins should be active (BOUNCING or BOOSTING). */
