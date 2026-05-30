@@ -6,6 +6,7 @@
     "DiagBounceEntityMixin",
     "DiagBounceLivingEntityMixin",
     "DiagBounceKeyBindingMixin",
+    "FreeLookNullGuardMixin"
   ],
   "injectors": {
     "defaultRequire": 1
