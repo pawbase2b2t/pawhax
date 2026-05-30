@@ -18,6 +18,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.MovementType;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
+import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlayerRespawnS2CPacket;
 import net.minecraft.util.math.BlockPos;
@@ -186,6 +187,10 @@ public class DiagBounce extends Module {
 
     @EventHandler
     private void onReceivePacket(PacketEvent.Receive event) {
+        if (event.packet instanceof GameJoinS2CPacket) {
+            mc.execute(() -> { if (isActive()) toggle(); });
+            return;
+        }
         if (event.packet instanceof PlayerRespawnS2CPacket) {
             // Dimension change or respawn — disable cleanly to avoid crash during world transition.
             mc.execute(() -> { if (isActive()) toggle(); });
@@ -235,7 +240,6 @@ public class DiagBounce extends Module {
     @EventHandler
     private void onTick(TickEvent.Pre event) {
         if (mc.player == null || mc.world == null || mc.player.getAbilities().allowFlying) return;
-        if (activationPos == null) { toggle(); return; }
 
         switch (state) {
             case ALIGNING         -> tickAligning();
