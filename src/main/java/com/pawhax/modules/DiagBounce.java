@@ -235,6 +235,7 @@ public class DiagBounce extends Module {
     @EventHandler
     private void onTick(TickEvent.Pre event) {
         if (mc.player == null || mc.world == null || mc.player.getAbilities().allowFlying) return;
+        if (activationPos == null) { toggle(); return; }
 
         switch (state) {
             case ALIGNING         -> tickAligning();
