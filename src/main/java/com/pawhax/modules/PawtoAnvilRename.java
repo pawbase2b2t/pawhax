@@ -158,6 +158,7 @@ public class PawtoAnvilRename extends Module {
 
     private State state = State.IDLE;
     private int delay = 0;
+    private int waitTicks = 0;
     private TextFieldWidget cachedTextField = null; // cached once per anvil open to avoid repeated reflection
 
     private boolean notified = false;
@@ -239,6 +240,7 @@ public class PawtoAnvilRename extends Module {
     private void resetState() {
         state = State.IDLE;
         delay = 0;
+        waitTicks = 0;
         cachedTextField = null;
         notified = false;
     }
@@ -331,6 +333,16 @@ public class PawtoAnvilRename extends Module {
         // Anvil slot layout: 0=first input, 1=second input, 2=output, 3-29=main inventory, 30-38=hotbar
         ItemStack input1 = handler.getSlot(0).getStack();
         ItemStack output = handler.getSlot(2).getStack();
+
+        // Timeout stuck wait states after 200 ticks (~10 s) to prevent the module hanging forever
+        if (state != State.IDLE) {
+            if (++waitTicks > 200) {
+                resetState();
+                return;
+            }
+        } else {
+            waitTicks = 0;
+        }
 
         // Wait states - hold off until the server confirms the previous action
         switch (state) {

@@ -63,7 +63,6 @@ public class AntiAntiSpam extends Module {
 
     @Override
     public void onDeactivate() {
-        fetching.set(false);
         lastFetchMs = 0;
     }
 

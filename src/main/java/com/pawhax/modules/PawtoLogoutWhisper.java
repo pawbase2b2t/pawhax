@@ -81,9 +81,9 @@ public class PawtoLogoutWhisper extends Module {
     // Valid triggers: !logout, !log, !disconnect, !dc. Optional trailing text allows for antispam and -r reason.
     private static final Pattern TRIGGER_PATTERN = Pattern.compile("^(!logout|!log|!disconnect|!dc)( .*)?$");
 
-    private boolean disconnectPending = false;
-    private long disconnectAtMs = -1;
-    private String pendingDisconnectMessage = null;
+    private volatile boolean disconnectPending = false;
+    private volatile long disconnectAtMs = -1;
+    private volatile String pendingDisconnectMessage = null;
 
     public PawtoLogoutWhisper() {
         super(PawHax.CATEGORY, "PawtoLogoutWhisper", "auto logs you on msg");

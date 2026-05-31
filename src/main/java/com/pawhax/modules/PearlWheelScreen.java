@@ -183,7 +183,7 @@ public class PearlWheelScreen extends Screen {
             // Slot clicks on the wheel
             if (hoveredSlot >= 0) {
                 int idx = currentPage * SLOTS + hoveredSlot;
-                if (idx < itemCount) {
+                if (idx < itemCount && idx < commands.size()) {
                     String command = commands.get(idx);
                     if (command != null && !command.isEmpty() && mc.player != null) {
                         if (command.startsWith("/")) {
