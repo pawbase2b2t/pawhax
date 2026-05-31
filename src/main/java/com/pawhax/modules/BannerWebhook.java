@@ -55,8 +55,6 @@ public class BannerWebhook extends Module {
     @Override
     public void onDeactivate() {}
 
-    public void clearSession() {}
-
     public void handleBanner(BannerBlockEntity banner, BlockPos pos) {
         String url = webhookUrl.get();
         if (url == null || url.isEmpty()) return;

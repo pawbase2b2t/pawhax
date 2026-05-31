@@ -7,7 +7,6 @@
     "DiagBounceLivingEntityMixin",
     "DiagBounceKeyBindingMixin",
     "BannerWebhookMixin",
-    "BannerWebhookJoinMixin",
     "FreeLookNullGuardMixin"
   ],
   "injectors": {
