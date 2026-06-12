@@ -47,15 +47,12 @@ public class SmtcProvider {
 
     private static final AtomicReference<String[]> currentTrack = new AtomicReference<>(null);
     private static volatile boolean running     = false;
-    private static volatile boolean debugMode   = false;
     private static          Thread  pollThread  = null;
     private static          Pointer smtcManager = null;
 
     public static String[] getTrack()  { return currentTrack.get(); }
     public static String   getTitle()  { String[] t = currentTrack.get(); return t != null ? t[0] : null; }
     public static String   getArtist() { String[] t = currentTrack.get(); return t != null ? t[1] : null; }
-    public static void     setDebug(boolean on) { debugMode = on; }
-
     public static synchronized void start() {
         if (running) return;
         String os = System.getProperty("os.name", "").toLowerCase();
@@ -192,7 +189,6 @@ public class SmtcProvider {
             if (artist == null) artist = readHstring(props, 8);  // get_AlbumArtist fallback
             if (artist == null) artist = readHstring(props, 7);  // get_Subtitle fallback
             currentTrack.set((title != null || artist != null) ? new String[]{title, artist} : null);
-            if (debugMode) debugLogProps(props);
         } finally {
             release(props);
         }
@@ -222,26 +218,6 @@ public class SmtcProvider {
             return null;
         } finally {
             release(asyncOp);
-        }
-    }
-
-    private static void debugLogProps(Pointer props) {
-        int[]    slots = {  6,       7,          8,             9,        10          };
-        String[] names = { "Title", "Subtitle", "AlbumArtist", "Artist", "AlbumTitle" };
-        for (int i = 0; i < slots.length; i++) {
-            PointerByReference hstrRef = new PointerByReference();
-            int hr = vtableCall(props, slots[i], hstrRef);
-            String value = null;
-            if (hr == 0 && hstrRef.getValue() != null) {
-                IntByReference len = new IntByReference();
-                Pointer raw = Combase.INSTANCE.WindowsGetStringRawBuffer(hstrRef.getValue(), len);
-                if (raw != null && len.getValue() > 0) value = raw.getWideString(0);
-                Combase.INSTANCE.WindowsDeleteString(hstrRef.getValue());
-            }
-            PawHax.LOG.info("[NowPlaying] slot[{}] get_{} = {} (hr=0x{})",
-                slots[i], names[i],
-                value != null ? "\"" + value + "\"" : "null",
-                String.format("%08X", hr));
         }
     }
 
