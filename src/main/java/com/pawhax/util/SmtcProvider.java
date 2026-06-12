@@ -188,9 +188,9 @@ public class SmtcProvider {
         }
         try {
             String title  = readHstring(props, 6); // get_Title
-            String artist = readHstring(props, 8); // get_Artist
-            if (artist == null) artist = readHstring(props, 7);  // get_AlbumArtist fallback
-            if (artist == null) artist = readHstring(props, 13); // get_Subtitle fallback (Plex)
+            String artist = readHstring(props, 9); // get_Artist
+            if (artist == null) artist = readHstring(props, 8);  // get_AlbumArtist fallback
+            if (artist == null) artist = readHstring(props, 7);  // get_Subtitle fallback
             currentTrack.set((title != null || artist != null) ? new String[]{title, artist} : null);
             if (debugMode) debugLogProps(props);
         } finally {
@@ -226,8 +226,8 @@ public class SmtcProvider {
     }
 
     private static void debugLogProps(Pointer props) {
-        int[]    slots = {  6,       7,             8,        9,            13        };
-        String[] names = { "Title", "AlbumArtist", "Artist", "AlbumTitle", "Subtitle" };
+        int[]    slots = {  6,       7,          8,             9,        10          };
+        String[] names = { "Title", "Subtitle", "AlbumArtist", "Artist", "AlbumTitle" };
         for (int i = 0; i < slots.length; i++) {
             PointerByReference hstrRef = new PointerByReference();
             int hr = vtableCall(props, slots[i], hstrRef);
