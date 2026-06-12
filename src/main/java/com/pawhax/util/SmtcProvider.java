@@ -187,6 +187,7 @@ public class SmtcProvider {
         try {
             String title  = readHstring(props, 6); // get_Title
             String artist = readHstring(props, 8); // get_Artist
+            if (artist == null) artist = readHstring(props, 7); // get_AlbumArtist fallback
             currentTrack.set((title != null || artist != null) ? new String[]{title, artist} : null);
         } finally {
             release(props);
