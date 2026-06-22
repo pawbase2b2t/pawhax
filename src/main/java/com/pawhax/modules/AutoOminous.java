@@ -31,7 +31,14 @@ public class AutoOminous extends Module {
         if (mc.player == null || mc.world == null) return;
 
         if (mc.player.isUsingItem()) {
-            mc.options.useKey.setPressed(true);
+            if (mc.player.hasStatusEffect(StatusEffects.BAD_OMEN)) {
+                // First bottle finished and the game auto-started the next one — stop it
+                mc.options.useKey.setPressed(false);
+                mc.player.stopUsingItem();
+                restoreSlot();
+            } else {
+                mc.options.useKey.setPressed(true);
+            }
             return;
         }
 
