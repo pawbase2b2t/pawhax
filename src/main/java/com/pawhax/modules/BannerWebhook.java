@@ -2,15 +2,11 @@ package com.pawhax.modules;
 
 import com.google.gson.*;
 import com.pawhax.PawHax;
-import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
-import meteordevelopment.orbit.EventHandler;
 import net.minecraft.block.entity.BannerBlockEntity;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.component.type.BannerPatternsComponent;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.chunk.WorldChunk;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -39,7 +35,6 @@ public class BannerWebhook extends Module {
 
     private final Set<String> allTimeSeen = Collections.synchronizedSet(new HashSet<>());
     private Path saveFile;
-    private int scanTimer = 0;
 
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "BannerWebhook-Sender");
@@ -55,36 +50,10 @@ public class BannerWebhook extends Module {
     public void onActivate() {
         saveFile = Paths.get("meteor-client", "pawhax", "banners_seen.json");
         loadFromDisk();
-        scanTimer = 0;
     }
 
     @Override
     public void onDeactivate() {}
-
-    public void clearSession() {
-        scanTimer = 0;
-    }
-
-    @EventHandler
-    private void onTick(TickEvent.Post event) {
-        if (mc.world == null || mc.player == null) return;
-        if (++scanTimer < 40) return;
-        scanTimer = 0;
-
-        int cx = mc.player.getChunkPos().x;
-        int cz = mc.player.getChunkPos().z;
-
-        for (int dx = -5; dx <= 5; dx++) {
-            for (int dz = -5; dz <= 5; dz++) {
-                if (!(mc.world.getChunk(cx + dx, cz + dz) instanceof WorldChunk chunk)) continue;
-                for (Map.Entry<BlockPos, BlockEntity> entry : chunk.getBlockEntities().entrySet()) {
-                    if (entry.getValue() instanceof BannerBlockEntity banner) {
-                        handleBanner(banner, entry.getKey());
-                    }
-                }
-            }
-        }
-    }
 
     public void handleBanner(BannerBlockEntity banner, BlockPos pos) {
         String url = webhookUrl.get();
@@ -133,8 +102,8 @@ public class BannerWebhook extends Module {
     private String buildMessage(BlockPos pos, BannerBlockEntity banner) {
         StringBuilder sb = new StringBuilder();
         sb.append("🚩 **New Banner Pattern!**\n");
-        sb.append("📍 **Coords:** `").append(pos.getX()).append(", ")
-          .append(pos.getY()).append(", ").append(pos.getZ()).append("`\n");
+        sb.append("📍 **Coords:** ||").append(pos.getX()).append(", ")
+          .append(pos.getY()).append(", ").append(pos.getZ()).append("||\n");
         sb.append("🎨 **Base:** ").append(formatName(banner.getColorForState().name().toLowerCase())).append("\n");
         BannerPatternsComponent patterns = banner.getPatterns();
         if (patterns != null && !patterns.layers().isEmpty()) {
