@@ -42,7 +42,7 @@ public class AutoOminous extends Module {
         FindItemResult bottle = InvUtils.find(Items.OMINOUS_BOTTLE);
         if (!bottle.found()) return;
 
-        InvUtils.swap(bottle.slot(), true);
+        InvUtils.swap(bottle.slot(), false);
         swapped = true;
         mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
     }
