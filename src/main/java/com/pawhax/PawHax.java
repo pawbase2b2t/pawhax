@@ -39,6 +39,7 @@ public class PawHax extends MeteorAddon {
         Modules.get().add(new BannerWebhook());
         Modules.get().add(new NowPlayingModule());
         Modules.get().add(new AutoTorch());
+        Modules.get().add(new AutoOminous());
         Modules.get().add(new AutoSmith());
         Modules.get().add(new Enchanter());
 
