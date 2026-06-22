@@ -20,6 +20,7 @@ public class AutoOminous extends Module {
 
     @Override
     public void onDeactivate() {
+        mc.options.useKey.setPressed(false);
         if (swapped) {
             InvUtils.swapBack();
             swapped = false;
@@ -30,7 +31,13 @@ public class AutoOminous extends Module {
     private void onTick(TickEvent.Post event) {
         if (mc.player == null || mc.world == null) return;
 
-        if (mc.player.isUsingItem()) return;
+        if (mc.player.isUsingItem()) {
+            // Hold use key so the game's input loop doesn't call stopUsingItem each tick
+            mc.options.useKey.setPressed(true);
+            return;
+        }
+
+        mc.options.useKey.setPressed(false);
 
         if (swapped) {
             InvUtils.swapBack();
@@ -45,5 +52,6 @@ public class AutoOminous extends Module {
         InvUtils.swap(bottle.slot(), false);
         swapped = true;
         mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
+        mc.options.useKey.setPressed(true);
     }
 }
