@@ -39,6 +39,8 @@ public class PawHax extends MeteorAddon {
         Modules.get().add(new BannerWebhook());
         Modules.get().add(new NowPlayingModule());
         Modules.get().add(new AutoTorch());
+        Modules.get().add(new AutoSmith());
+        Modules.get().add(new Enchanter());
 
         LOG.info("imported larp modules........");
         LOG.info("rat successfully installed! :3");
