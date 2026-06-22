@@ -15,6 +15,7 @@ public class AutoOminous extends Module {
 
     private int swapScreenSlot = -1;
     private int swapHotbarSlot = -1;
+    private boolean holdingUseKey = false;
 
     public AutoOminous() {
         super(PawHax.CATEGORY, "auto-ominous", "Automatically drinks Ominous Bottles to maintain Bad Omen.");
@@ -22,7 +23,7 @@ public class AutoOminous extends Module {
 
     @Override
     public void onDeactivate() {
-        mc.options.useKey.setPressed(false);
+        releaseUseKey();
         restoreSlot();
     }
 
@@ -31,19 +32,21 @@ public class AutoOminous extends Module {
         if (mc.player == null || mc.world == null) return;
 
         if (mc.player.isUsingItem()) {
-            if (mc.player.hasStatusEffect(StatusEffects.BAD_OMEN)) {
+            if (holdingUseKey && mc.player.hasStatusEffect(StatusEffects.BAD_OMEN)) {
                 // First bottle finished and the game auto-started the next one — stop it
-                mc.options.useKey.setPressed(false);
+                releaseUseKey();
                 mc.player.stopUsingItem();
                 restoreSlot();
-            } else {
+            } else if (holdingUseKey) {
                 mc.options.useKey.setPressed(true);
             }
             return;
         }
 
-        mc.options.useKey.setPressed(false);
-        restoreSlot();
+        if (holdingUseKey) {
+            releaseUseKey();
+            restoreSlot();
+        }
 
         if (mc.player.hasStatusEffect(StatusEffects.BAD_OMEN)) return;
 
@@ -51,10 +54,10 @@ public class AutoOminous extends Module {
         if (!bottle.found()) return;
 
         int invSlot = bottle.slot();
-        int currentHotbar = mc.player.getInventory().getSelectedSlot();
         // PlayerInventory slots 0-8 = hotbar → screen handler slots 36-44
         // PlayerInventory slots 9-35 = main inventory → screen handler slots 9-35
         int screenSlot = invSlot <= 8 ? invSlot + 36 : invSlot;
+        int currentHotbar = mc.player.getInventory().getSelectedSlot();
 
         mc.interactionManager.clickSlot(
             mc.player.playerScreenHandler.syncId,
@@ -65,6 +68,12 @@ public class AutoOminous extends Module {
 
         mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
         mc.options.useKey.setPressed(true);
+        holdingUseKey = true;
+    }
+
+    private void releaseUseKey() {
+        mc.options.useKey.setPressed(false);
+        holdingUseKey = false;
     }
 
     private void restoreSlot() {
