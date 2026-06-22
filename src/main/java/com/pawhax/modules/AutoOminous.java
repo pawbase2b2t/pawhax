@@ -11,13 +11,10 @@ import net.minecraft.item.Items;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Hand;
 
-import java.lang.reflect.Field;
-
 public class AutoOminous extends Module {
 
     private int swapScreenSlot = -1;
     private int swapHotbarSlot = -1;
-    private Field selectedSlotField;
 
     public AutoOminous() {
         super(PawHax.CATEGORY, "auto-ominous", "Automatically drinks Ominous Bottles to maintain Bad Omen.");
@@ -46,10 +43,8 @@ public class AutoOminous extends Module {
         FindItemResult bottle = InvUtils.find(Items.OMINOUS_BOTTLE);
         if (!bottle.found()) return;
 
-        int currentHotbar = getSelectedSlot();
-        if (currentHotbar < 0) return;
-
         int invSlot = bottle.slot();
+        int currentHotbar = mc.player.getInventory().getSelectedSlot();
         // PlayerInventory slots 0-8 = hotbar → screen handler slots 36-44
         // PlayerInventory slots 9-35 = main inventory → screen handler slots 9-35
         int screenSlot = invSlot <= 8 ? invSlot + 36 : invSlot;
@@ -73,18 +68,5 @@ public class AutoOminous extends Module {
         );
         swapScreenSlot = -1;
         swapHotbarSlot = -1;
-    }
-
-    private int getSelectedSlot() {
-        if (mc.player == null) return -1;
-        try {
-            if (selectedSlotField == null) {
-                selectedSlotField = mc.player.getInventory().getClass().getDeclaredField("selectedSlot");
-                selectedSlotField.setAccessible(true);
-            }
-            return selectedSlotField.getInt(mc.player.getInventory());
-        } catch (Exception e) {
-            return -1;
-        }
     }
 }
