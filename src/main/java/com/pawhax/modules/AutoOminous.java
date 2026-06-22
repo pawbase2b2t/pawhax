@@ -8,11 +8,16 @@ import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Items;
+import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Hand;
+
+import java.lang.reflect.Field;
 
 public class AutoOminous extends Module {
 
-    private boolean swapped = false;
+    private int swapScreenSlot = -1;
+    private int swapHotbarSlot = -1;
+    private Field selectedSlotField;
 
     public AutoOminous() {
         super(PawHax.CATEGORY, "auto-ominous", "Automatically drinks Ominous Bottles to maintain Bad Omen.");
@@ -21,10 +26,7 @@ public class AutoOminous extends Module {
     @Override
     public void onDeactivate() {
         mc.options.useKey.setPressed(false);
-        if (swapped) {
-            InvUtils.swapBack();
-            swapped = false;
-        }
+        restoreSlot();
     }
 
     @EventHandler
@@ -32,26 +34,57 @@ public class AutoOminous extends Module {
         if (mc.player == null || mc.world == null) return;
 
         if (mc.player.isUsingItem()) {
-            // Hold use key so the game's input loop doesn't call stopUsingItem each tick
             mc.options.useKey.setPressed(true);
             return;
         }
 
         mc.options.useKey.setPressed(false);
-
-        if (swapped) {
-            InvUtils.swapBack();
-            swapped = false;
-        }
+        restoreSlot();
 
         if (mc.player.hasStatusEffect(StatusEffects.BAD_OMEN)) return;
 
         FindItemResult bottle = InvUtils.find(Items.OMINOUS_BOTTLE);
         if (!bottle.found()) return;
 
-        InvUtils.swap(bottle.slot(), false);
-        swapped = true;
+        int currentHotbar = getSelectedSlot();
+        if (currentHotbar < 0) return;
+
+        int invSlot = bottle.slot();
+        // PlayerInventory slots 0-8 = hotbar → screen handler slots 36-44
+        // PlayerInventory slots 9-35 = main inventory → screen handler slots 9-35
+        int screenSlot = invSlot <= 8 ? invSlot + 36 : invSlot;
+
+        mc.interactionManager.clickSlot(
+            mc.player.playerScreenHandler.syncId,
+            screenSlot, currentHotbar, SlotActionType.SWAP, mc.player
+        );
+        swapScreenSlot = screenSlot;
+        swapHotbarSlot = currentHotbar;
+
         mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
         mc.options.useKey.setPressed(true);
+    }
+
+    private void restoreSlot() {
+        if (swapScreenSlot == -1 || mc.player == null) return;
+        mc.interactionManager.clickSlot(
+            mc.player.playerScreenHandler.syncId,
+            swapScreenSlot, swapHotbarSlot, SlotActionType.SWAP, mc.player
+        );
+        swapScreenSlot = -1;
+        swapHotbarSlot = -1;
+    }
+
+    private int getSelectedSlot() {
+        if (mc.player == null) return -1;
+        try {
+            if (selectedSlotField == null) {
+                selectedSlotField = mc.player.getInventory().getClass().getDeclaredField("selectedSlot");
+                selectedSlotField.setAccessible(true);
+            }
+            return selectedSlotField.getInt(mc.player.getInventory());
+        } catch (Exception e) {
+            return -1;
+        }
     }
 }
