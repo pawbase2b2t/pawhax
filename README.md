@@ -1,6 +1,6 @@
 furry Meteor Client addon.
 
-Made by olstar, wrenne, em0rave, CrisisSheep.
+Made by pawstar, CrisisSheep, wrenne, em0rave.
 
 Base ebounce/ymotion code from jefffsmod: https://github.com/miles352/meteor-stashhunting-addon
 
