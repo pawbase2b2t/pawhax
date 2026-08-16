@@ -1,6 +1,6 @@
-1.21.8 IS NO LONGER BEING MAINTAINED (unless u ask really nicely maybe we could make a .8 build)
+1.21.8 IS NEVER COMING BACK. IT IS NOT MAINTAINED
 
 
 furry Meteor Client addon.
 
-Made by Olstar123, wrenne, em0rave, CrisisSheep.
+Made by paw, wrenne, em0rave, CrisisSheep.
